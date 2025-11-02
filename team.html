@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Our Team | Ir Dr. Siwei LIU</title>
+  <meta name="description" content="Meet the research team led by Ir Dr. Siwei Liu at The Hong Kong Polytechnic University.">
+  <link rel="icon" href="assets/images/logo.png" type="image/png">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body id="team-page">
+  <div id="header"></div>
+  <div class="layout">
+    <div id="sidebar"></div>
+    <main class="content">
+      <!-- The Team page content will be loaded from Markdown via loadMarkdown() -->
+      <div id="teamContent" style="margin-top: 1rem;"></div>
+    </main>
+  </div>
+  <div id="footer"></div>
+  <script src="configuration.js"></script>
+  <script src="assets/js/main.js?v=20251005"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Use the loadMarkdown function from main.js which uses the custom markdownToHTML parser
+      loadMarkdown('pages/team.md', 'teamContent');
+    });
+  </script>
+</body>
+</html>

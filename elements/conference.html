@@ -1,0 +1,26 @@
+<div class="publications-container">
+  <!-- Controls Section -->
+  <div class="pub-controls-panel">
+    <div class="controls-row-top">
+      <!-- Search Box with Clear Button -->
+      <div class="search-box-container">
+        <input type="text" id="conferenceSearch" class="search-input" placeholder="Search titles, authors, conferences...">
+        <button id="conferenceSearchClear" class="search-clear-btn" aria-label="Clear search">&times;</button>
+      </div>
+      
+      <!-- Sort Dropdown -->
+      <div class="sort-dropdown-container">
+        <span class="sort-label">Sorted by:</span>
+        <select id="conferenceSortSelect" class="sort-select">
+          <option value="newest">Newest</option>
+          <option value="oldest">Oldest</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  
+  <div class="conference-list-container">
+    <ul id="conferenceList" class="compact-list"></ul>
+  </div>
+</div>
+

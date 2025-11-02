@@ -1,0 +1,3 @@
+# Welcome to Visit - Stability Fun!
+
+I specialize in structural engineering, with a focus on **stability design of modern structures**. My research advances sustainable and resilient infrastructure through innovative approaches in *steel structures*, *constructional 3D printing*, *engineered bamboo*, *glass curtain walls*, *tall buildings*, *modular construction*, *composite materials*, *applied computational mechanics*, and *machine learning in engineering software*.

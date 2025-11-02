@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Biography | Siwei Liu</title>
+  <meta name="description" content="Comprehensive biography of Ir Dr. Siwei Liu including research interests, community service, education, qualifications, work experience, awards and funding.">
+  <link rel="icon" href="assets/images/logo.png" type="image/png">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body id="about-page">
+  <!-- Header will be injected by main.js -->
+  <div id="header"></div>
+  <div class="layout">
+    <div id="sidebar"></div>
+    <main class="content">
+      <!-- The About page content will be loaded from Markdown via loadMarkdown() -->
+      <div id="aboutContent">
+        <div id="markdownContent"></div>
+      </div>
+    </main>
+  </div>
+  <div id="footer"></div>
+  <script src="configuration.js"></script>
+  <script src="assets/js/main.js?v=20251005"></script>
+  <script src="assets/js/publications.js"></script>
+  <!-- Load the About page markdown content using the loadMarkdown function from main.js -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Use the loadMarkdown function from main.js which uses the custom markdownToHTML parser
+      loadMarkdown('pages/about.md', 'markdownContent').then(() => {
+        // After markdown is loaded, wait a bit for DOM to update, then load publications
+        // Try multiple times in case the div conversion takes a moment
+        let attempts = 0;
+        const maxAttempts = 10;
+        const checkInterval = setInterval(() => {
+          const container = document.getElementById('publicationsList');
+          if (container || attempts >= maxAttempts) {
+            clearInterval(checkInterval);
+            if (container) {
+              loadPublicationsForAboutPage();
+            } else {
+              console.warn('Publications container not found after markdown load');
+            }
+          }
+          attempts++;
+        }, 50);
+      }).catch(err => {
+        console.error('Error loading markdown:', err);
+      });
+    });
+
+    // Toggle publications visibility - make it globally accessible
+    window.togglePublications = function() {
+      const content = document.querySelector('#publicationsList .publications-content');
+      const arrow = document.querySelector('#publicationsList .publications-arrow');
+      
+      if (content && arrow) {
+        if (content.style.display === 'none') {
+          content.style.display = 'block';
+          arrow.textContent = '▼';
+        } else {
+          content.style.display = 'none';
+          arrow.textContent = '▶';
+        }
+      }
+    };
+
+    // Load and render publications for the about page
+    async function loadPublicationsForAboutPage() {
+      const container = document.getElementById('publicationsList');
+      if (!container) return;
+
+      try {
+        // Load all publication data - force reload to ensure fresh data
+        await loadJournalData(true);  // forceReload = true
+        await loadBookChaptersData(true);  // forceReload = true
+        await loadConferenceData(true);  // forceReload = true
+
+        // Sort all publications: journals, book chapters, conferences
+        const sortedJournals = journalData.slice().sort((a, b) => {
+          const numA = parseInt((a.id || '').match(/\d+/)) || 0;
+          const numB = parseInt((b.id || '').match(/\d+/)) || 0;
+          return numB - numA;
+        });
+
+        const sortedBookChapters = bookChaptersData.slice().sort((a, b) => {
+          const numA = parseInt((a.id || '').match(/\d+/)) || 0;
+          const numB = parseInt((b.id || '').match(/\d+/)) || 0;
+          return numB - numA;
+        });
+
+        const sortedConferences = conferenceData.slice().sort((a, b) => {
+          const numA = parseInt((a.id || '').match(/\d+/)) || 0;
+          const numB = parseInt((b.id || '').match(/\d+/)) || 0;
+          return numB - numA;
+        });
+
+        let html = '';
+
+        // Journal Papers Section
+        if (sortedJournals.length > 0) {
+          html += '<p><strong>Journal Papers</strong></p>\n<ul>\n';
+          sortedJournals.forEach(paper => {
+            const paperId = paper.id || '';
+            let citation = paper.cv || paper.APA || '';
+            
+            if (!paper.cv) {
+              const correspondingAuthor = paper['corresponding author'] || '';
+              citation = addCorrespondingAuthorStar(paper.authors || [], correspondingAuthor, citation);
+            }
+            
+            citation = boldLiuNames(citation);
+            html += `<li><strong>${paperId}</strong> ${citation}</li>\n`;
+          });
+          html += '</ul>\n';
+        }
+
+        // Book Chapters Section
+        if (sortedBookChapters.length > 0) {
+          html += '<p><strong>Book Chapters</strong></p>\n<ul>\n';
+          sortedBookChapters.forEach(chapter => {
+            const chapterId = chapter.id || '';
+            let citation = chapter.APA || '';
+            citation = boldLiuNames(citation);
+            html += `<li><strong>${chapterId}</strong> ${citation}</li>\n`;
+          });
+          html += '</ul>\n';
+        }
+
+        // Conference Papers Section
+        if (sortedConferences.length > 0) {
+          html += '<p><strong>Conference Papers</strong></p>\n<ul>\n';
+          sortedConferences.forEach(paper => {
+            const paperId = paper.id || '';
+            let citation = paper.APA || '';
+            citation = boldLiuNames(citation);
+            html += `<li><strong>${paperId}</strong> ${citation}</li>\n`;
+          });
+          html += '</ul>\n';
+        }
+
+        // Wrap in collapsible container
+        const totalCount = sortedJournals.length + sortedBookChapters.length + sortedConferences.length;
+        container.innerHTML = `
+          <div class="publications-toggle-header" onclick="togglePublications()">
+            <span class="publications-arrow">▶</span>
+            <strong>Publications</strong> <span style="opacity: 0.7; font-weight: normal;">(${totalCount} items)</span>
+          </div>
+          <div class="publications-content" style="display: none;">
+            ${html}
+          </div>
+        `;
+      } catch (error) {
+        console.error('Error loading publications for about page:', error);
+        container.innerHTML = '<p>Publications are being loaded...</p>';
+      }
+    }
+  </script>
+</body>
+</html>

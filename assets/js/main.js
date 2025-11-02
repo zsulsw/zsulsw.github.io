@@ -1,0 +1,1444 @@
+/*
+ * Main JavaScript for Dr. Siwei Liu’s personal website.
+ *
+ * This script dynamically loads header and footer templates,
+ * implements the responsive navigation bar, controls the dark/light
+ * theme switching, displays the list of publications from a JSON
+ * source, and manages news content.
+ */
+
+// Fallback HTML fragments for header and footer.  If fetching the
+// corresponding file fails (for example when viewing via the file://
+// protocol), these strings will be used instead.  They contain a
+// simplified version of the full header/footer defined in the
+// elements folder.
+// Updated fallback header to reflect new navigation without Teaching/Team links, include a home icon,
+// search clear button and suggestions container.  This fallback markup is used when the
+// site is viewed via the file protocol and external HTML fragments cannot be fetched.
+const fallbackHeader = `
+  <nav class="site-nav">
+    <div class="nav-container">
+      <a href="index.html" class="nav-brand">
+        <img src="assets/images/logo-icon.png" alt="Stability Fun Logo" class="nav-logo">
+        <span>Stability Fun</span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">☰</button>
+      <ul class="nav-menu" id="navMenu">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">Biography</a></li>
+        <li><a href="news.html">News</a></li>
+        <li><a href="research.html">Research</a></li>
+        <li><a href="publications.html">Publications</a></li>
+        <li><a href="msasect2.html">MSASect2</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+      <div class="nav-right">
+        <div class="nav-search" id="navSearch">
+          <input type="text" id="searchInput" placeholder="Search…" aria-label="Search site">
+          <button id="searchClear" class="search-clear" aria-label="Clear search">&times;</button>
+          <button id="searchButton" aria-label="Search">
+            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+              <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+            </svg>
+          </button>
+        </div>
+        <div class="suggestions-container" id="searchSuggestions">
+          <div class="result-count" id="searchSuggestionsCount"></div>
+          <ul id="searchSuggestionsList"></ul>
+        </div>
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark/light mode">
+          <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6m0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8"/>
+            <path d="M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708"/>
+          </svg>
+          <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278M4.858 1.311A7.27 7.27 0 0 0 1.025 7.71c0 4.02 3.279 7.276 7.319 7.276a7.32 7.32 0 0 0 5.205-2.162q-.506.063-1.029.063c-4.61 0-8.343-3.714-8.343-8.29 0-1.167.242-2.278.681-3.286"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+`;
+// Fallback footer: used when elements/footer.html cannot be fetched (e.g. file protocol).
+// This version only displays the useful links required by the user and the updated
+// last‑updated date.  Links open in a new window for consistency with the online version.
+const fallbackFooter = `
+  <footer class="site-footer">
+    <div class="footer-container">
+      <div class="footer-line">
+        <p>© 2025 Siwei Liu | Department of Civil and Environmental Engineering, The Hong Kong Polytechnic University</p>
+      </div>
+      <div class="footer-line">
+        <p>
+          Useful Links:
+          <a href="https://www.nidacse.com/hk/" target="_blank" rel="noopener">NIDA Software</a>
+          <span>•</span>
+          <a href="https://www.ascjournal.com/" target="_blank" rel="noopener">International Journal of Advanced Steel Construction</a>
+          <span>•</span>
+          <a href="https://www.hkisc.org/" target="_blank" rel="noopener">HKISC</a>
+          <span>•</span>
+          <a href="https://www.mastan2.com/" target="_blank" rel="noopener">Mastan2</a>
+          <span>•</span>
+          <a href="https://www.msasect.com/" target="_blank" rel="noopener">MSASect</a>
+        </p>
+      </div>
+      <div class="footer-line">
+        <p>Last updated: October 30, 2025 | <a href="feed.xml">RSS Feed</a></p>
+      </div>
+    </div>
+  </footer>
+  <style>
+  /* Compact professional footer styling */
+  .site-footer {
+    background-color: var(--footer-bg);
+    border-top: 1px solid var(--nav-border);
+    margin-top: 4rem;
+    padding: 1.5rem 0;
+    color: var(--text-color);
+    font-size: 0.9rem;
+  }
+  .footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    text-align: center;
+  }
+  .footer-line {
+    margin: 0.25rem 0;
+  }
+  .footer-line p {
+    margin: 0;
+    color: var(--text-color);
+    opacity: 0.85;
+  }
+  .footer-line a {
+    color: var(--link-color);
+    text-decoration: none;
+    transition: var(--hover-transition);
+  }
+  .footer-line a:hover {
+    text-decoration: underline;
+  }
+  .footer-line span {
+    color: var(--text-color);
+    opacity: 0.5;
+    margin: 0 0.25rem;
+  }
+  @media (max-width: 768px) {
+    .site-footer {
+      padding: 1.25rem 0;
+      font-size: 0.85rem;
+    }
+  }
+  body.dark-mode .site-footer {
+    background-color: var(--footer-bg);
+    border-top-color: var(--nav-border);
+  }
+  </style>
+`;
+
+// Fallback markup for the left sidebar.  It mirrors the simplified sidebar used
+// throughout the site: roles are listed with bullet points linking to external
+// pages, location/university lines are removed, and only the email address is
+// shown.  Social media icons are displayed horizontally using the downloaded
+// PNG files for consistency with the desktop sidebar.  The citation metrics
+// section has been removed to streamline the sidebar in offline mode.
+const fallbackSidebar = `
+  <div class="sidebar">
+    <!-- Profile photo and name -->
+    <div class="sidebar-logo">
+      <img src="assets/images/siwei_liu_photo.jpeg" alt="Ir Dr. Siwei Liu">
+    </div>
+    <div class="sidebar-info">
+      <h3>Ir Dr. Siwei&nbsp;LIU</h3>
+      <p class="sidebar-cred">BEng, PhD, MHKIE, FHKISC</p>
+    </div>
+    <!-- Roles / positions -->
+    <div class="sidebar-roles">
+      <ul>
+        <li><a href="https://www.polyu.edu.hk/cee/people/academic-staff/dr-siwei-liu/" target="_blank" rel="noopener">Assistant Professor, The Hong Kong Polytechnic University</a></li>
+        <li><a href="https://www.ascjournal.com" target="_blank" rel="noopener">Associate Editor, International Journal of Advanced Steel Construction</a></li>
+      </ul>
+    </div>
+    <!-- Contact and academic profile links -->
+    <div class="sidebar-contact">
+      <p>
+        <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1zm13 2.383-4.708 2.825L15 11.105zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741M1 11.105l4.708-2.897L1 5.383z"/>
+        </svg>
+        <a href="mailto:si-wei.liu@polyu.edu.hk">si-wei.liu@polyu.edu.hk</a>
+      </p>
+      <p>
+        <img src="assets/images/icon-orcid.png" alt="ORCID" class="sidebar-icon-img">
+        <a href="https://orcid.org/0000-0002-3283-5964" target="_blank" rel="noopener">ORCID: 0000-0002-3283-5964</a>
+      </p>
+      <p>
+        <img src="assets/images/icon-google-scholar.png" alt="Google Scholar" class="sidebar-icon-img">
+        <a href="https://scholar.google.com.hk/citations?user=pltU9uwAAAAJ" target="_blank" rel="noopener">Google Scholar</a>
+      </p>
+      <p>
+        <img src="assets/images/icon-scopus.png" alt="Scopus" class="sidebar-icon-img">
+        <a href="https://www.scopus.com/authid/detail.uri?authorId=55836781500" target="_blank" rel="noopener">Scopus ID: 55836781500</a>
+      </p>
+      <p>
+        <img src="assets/images/icon-researchgate.png" alt="ResearchGate" class="sidebar-icon-img">
+        <a href="https://www.researchgate.net/profile/Siwei_Liu" target="_blank" rel="noopener">Research Gate</a>
+      </p>
+    </div>
+    <!-- Research interests tags -->
+    <div class="research-tags-widget">
+      <h4 class="tags-title">RESEARCH INTERESTS</h4>
+      <div class="tags-container" id="researchTagsContainer">
+        <!-- Tags will be injected via JavaScript -->
+      </div>
+    </div>
+  </div>
+`;
+
+// Simple Markdown parser and helper functions
+//
+// The website uses a lightweight Markdown dialect for pages (e.g. about.md)
+// and news articles (news/<slug>/news.md).  Because external libraries
+// cannot be loaded when browsing via the file:// protocol, we implement a
+// minimal parser here.  It supports headings (levels 1–6), bold/italic
+// emphasis, images, links and unordered lists.  Additional Markdown
+// constructs can be added as needed.  The parser first converts
+// inline elements using regular expressions, then processes block
+// elements such as lists and paragraphs.
+
+/**
+ * Convert a Markdown string into HTML.  This function performs a series
+ * of regex replacements to transform Markdown syntax into its HTML
+ * equivalent.  It is intentionally simple and should be extended
+ * cautiously to avoid unintended parsing of code blocks or advanced
+ * notation.
+ *
+ * @param {string} md The raw Markdown content
+ * @returns {string} Sanitised HTML
+ */
+function markdownToHTML(md) {
+  // Normalise line endings
+  let html = md.replace(/\r\n/g, '\n');
+  // Escape angle brackets to prevent injection of unwanted HTML
+  html = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  // Images: ![alt](src)
+  html = html.replace(/!\[([^\]]*)\]\(([^\)]+)\)/g, '<img src="$2" alt="$1">');
+  // Links: [text](url)
+  html = html.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  // Bold: **text**
+  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  // Italic: *text* or _text_
+  html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  html = html.replace(/_([^_]+)_/g, '<em>$1</em>');
+  // Headings: ###### through #
+  html = html.replace(/^######\s+(.+)$/gm, '<h6>$1</h6>');
+  html = html.replace(/^#####\s+(.+)$/gm, '<h5>$1</h5>');
+  html = html.replace(/^####\s+(.+)$/gm, '<h4>$1</h4>');
+  html = html.replace(/^###\s+(.+)$/gm, '<h3>$1</h3>');
+  html = html.replace(/^##\s+(.+)$/gm, '<h2>$1</h2>');
+  html = html.replace(/^#\s+(.+)$/gm, '<h1>$1</h1>');
+  // Unordered list items: lines starting with - or *
+  html = html.replace(/^[\*\-]\s+(.+)$/gm, '<li>$1</li>');
+  // Now group consecutive <li> items into <ul>
+  html = groupListItems(html);
+  // Split on blank lines to create paragraphs
+  html = html.split(/\n{2,}/).map(block => {
+    const trimmed = block.trim();
+    if (!trimmed) return '';
+    // If the block already starts with a block-level tag (<h, <ul, <img, <p>)
+    if (/^<\s*(h[1-6]|ul|img|p|table|blockquote)/i.test(trimmed)) {
+      return trimmed;
+    }
+    // Otherwise wrap in a paragraph and replace remaining single newlines with <br>
+    return '<p>' + trimmed.replace(/\n+/g, '<br>') + '</p>';
+  }).join('\n');
+  return html;
+}
+
+/**
+ * Helper to group consecutive list items into unordered lists.  It
+ * scans the HTML string and wraps contiguous <li> elements with
+ * <ul>..</ul>.  This is necessary because the simple Markdown
+ * replacement above emits <li> tags without container lists.
+ *
+ * @param {string} html The HTML content containing <li> elements
+ * @returns {string} The HTML with grouped lists
+ */
+function groupListItems(html) {
+  const lines = html.split(/\n/);
+  const out = [];
+  let inList = false;
+  lines.forEach(line => {
+    if (line.trim().startsWith('<li>')) {
+      if (!inList) {
+        out.push('<ul>');
+        inList = true;
+      }
+      out.push(line.trim());
+    } else {
+      if (inList) {
+        out.push('</ul>');
+        inList = false;
+      }
+      out.push(line);
+    }
+  });
+  if (inList) out.push('</ul>');
+  return out.join('\n');
+}
+
+/**
+ * Load a Markdown file and insert its converted HTML into a target
+ * container.  The path is resolved relative to the current page
+ * similarly to loadElement().  This helper is used by about.html
+ * to display its content and can be reused for other pages.  If
+ * the fetch fails, an error message is displayed instead.
+ *
+ * @param {string} path Relative path to the Markdown file
+ * @param {string} containerId ID of the element where the HTML will be injected
+ */
+function loadMarkdown(path, containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return Promise.resolve(null);
+  // For Markdown files we intentionally avoid constructing an
+  // absolute URL for file:// mode.  Instead we rely on relative
+  // fetching so that the browser resolves the path based on the
+  // current location.  Only if an explicit protocol is provided
+  // (http or file) do we use the path directly.
+  // Resolve a relative path into an absolute URL when running in file:// mode.
+  let url;
+  if (/^(https?:|file:|\/)/.test(path)) {
+    url = path;
+  } else {
+    const current = window.location.pathname;
+    const base = current.substring(0, current.lastIndexOf('/') + 1);
+    url = base + path;
+  }
+  // When running via the file protocol, prefix with file:// to ensure fetch
+  if (window.location.protocol === 'file:' && !url.startsWith('file:')) {
+    url = 'file://' + url;
+  }
+  return fetch(url)
+    .then(resp => {
+      if (!resp.ok) throw new Error(resp.statusText);
+      return resp.text();
+    })
+    .then(md => {
+      container.innerHTML = markdownToHTML(md);
+      // Add class to Research Interests list for styling
+      const headings = container.querySelectorAll('h2');
+      headings.forEach(h2 => {
+        if (h2.textContent.trim() === 'Research Interests') {
+          const nextUl = h2.nextElementSibling;
+          if (nextUl && nextUl.tagName === 'UL') {
+            nextUl.classList.add('research-interests-list');
+          }
+        }
+      });
+      
+      // Handle Publications section - convert escaped HTML divs back to real HTML
+      // First try to find paragraphs containing the escaped div
+      const paragraphs = container.querySelectorAll('p');
+      paragraphs.forEach(p => {
+        const text = p.innerHTML;
+        // Check if this paragraph contains an escaped div with id="publicationsList"
+        // Handle both regular quotes and HTML entity quotes
+        if (text.includes('publicationsList')) {
+          // Check various escape patterns
+          const patterns = [
+            /&lt;div\s+id="publicationsList"&gt;&lt;\/div&gt;/gi,
+            /&lt;div\s+id=&quot;publicationsList&quot;&gt;&lt;\/div&gt;/gi,
+            /&lt;div\s+id='publicationsList'&gt;&lt;\/div&gt;/gi
+          ];
+          
+          let found = false;
+          patterns.forEach(pattern => {
+            if (pattern.test(text)) {
+              found = true;
+            }
+          });
+          
+          if (found) {
+            // Replace the paragraph with the actual div
+            const div = document.createElement('div');
+            div.id = 'publicationsList';
+            p.parentNode.replaceChild(div, p);
+          }
+        }
+      });
+      
+      // Also check if div is already there (in case markdown parser preserved it somehow)
+      let pubContainer = container.querySelector('#publicationsList');
+      if (!pubContainer) {
+        // If still not found, look for the Publications heading and insert div after it
+        // Also remove the Publications heading since we'll generate it dynamically
+        const headings = container.querySelectorAll('h2');
+        headings.forEach(h2 => {
+          if (h2.textContent.trim() === 'Publications') {
+            const div = document.createElement('div');
+            div.id = 'publicationsList';
+            // Remove the heading and insert div in its place
+            h2.parentNode.replaceChild(div, h2);
+          }
+        });
+      }
+      
+      return container;
+    })
+    .catch(err => {
+      console.error('Failed to load Markdown', err);
+      container.innerHTML = '<p>Unable to load content. Please make sure the Markdown file exists.</p>';
+      return container;
+    });
+}
+
+// -----------------------------------------------------------------------------
+// Search index loading
+//
+// The navigation search bar can display live suggestions based on a
+// precomputed search index.  This index is stored either in the global
+// variable `window.searchIndex` or in the file `data/search-index.json`.  To
+// avoid repeatedly fetching the same file, the index is cached in the
+// `searchData` array once loaded.  Calling `loadSearchIndex()` returns a
+// promise that resolves with the array of entries.  Each entry should have
+// `title`, `url` and `desc` fields as defined in data/search-index.json.
+
+let searchData = [];
+
+function loadSearchIndex() {
+  // If we already loaded the data, return it immediately
+  if (searchData.length > 0) {
+    return Promise.resolve(searchData);
+  }
+  // If a global searchIndex array has been defined, use it
+  if (Array.isArray(window.searchIndex)) {
+    searchData = window.searchIndex;
+    return Promise.resolve(searchData);
+  }
+  // Otherwise attempt to fetch the JSON file from the data directory.  Build
+  // an absolute URL relative to the current page to avoid issues when
+  // browsing with the file:// protocol.  This mirrors the approach in
+  // loadElement().
+  let url;
+  const rel = 'data/search-index.json';
+  if (/^(https?:|file:|\/)/.test(rel)) {
+    url = rel;
+  } else {
+    const current = window.location.pathname;
+    const base = current.substring(0, current.lastIndexOf('/') + 1);
+    url = base + rel;
+  }
+  return fetch(url)
+    .then(resp => resp.json())
+    .then(data => {
+      if (Array.isArray(data)) {
+        searchData = data;
+      }
+      return searchData;
+    })
+    .catch(err => {
+      console.error('Failed to load search index', err);
+      return [];
+    });
+}
+
+// -----------------------------------------------------------------------------
+// News list page
+//
+// The news list page (news.html) displays all news items and provides search
+// and sorting controls.  The list is built from the global `window.newsList`
+// defined in news/news-list.js.  Users can filter the list by typing into
+// the search box (matching titles and summaries) and sort by newest or
+// oldest.  The filtered/sorted results are rendered in the element with
+// id="allNews".
+
+function initNewsPage() {
+  const container = document.getElementById('allNews');
+  const searchInput = document.getElementById('newsSearch');
+  const sortSelect = document.getElementById('newsSort');
+  if (!container || !searchInput || !sortSelect || !Array.isArray(window.newsList)) return;
+  let data = window.newsList.slice();
+  function render() {
+    const q = searchInput.value.trim().toLowerCase();
+    const sortOrder = sortSelect.value;
+    let filtered = data;
+    if (q) {
+      filtered = filtered.filter(item =>
+        (item.title && item.title.toLowerCase().includes(q)) ||
+        (item.summary && item.summary.toLowerCase().includes(q))
+      );
+    }
+    filtered = filtered.slice();
+    // Sort by slug (YYYYMMDD), descending for newest first, ascending for oldest
+    filtered.sort((a, b) => {
+      return sortOrder === 'newest' ? b.slug.localeCompare(a.slug) : a.slug.localeCompare(b.slug);
+    });
+    // Clear existing
+    container.innerHTML = '';
+    if (filtered.length === 0) {
+      container.textContent = 'No news found.';
+      return;
+    }
+    // Render each news item
+    filtered.forEach(item => {
+      const article = document.createElement('article');
+      article.className = 'news-item';
+      const thumb = document.createElement('img');
+      thumb.src = item.image;
+      thumb.alt = item.title;
+      thumb.className = 'news-thumb';
+      article.appendChild(thumb);
+      const info = document.createElement('div');
+      info.className = 'news-info';
+      const titleEl = document.createElement('h3');
+      const link = document.createElement('a');
+      link.href = `news-post.html?slug=${encodeURIComponent(item.slug)}`;
+      link.textContent = item.title;
+      titleEl.appendChild(link);
+      info.appendChild(titleEl);
+      const dateEl = document.createElement('p');
+      dateEl.className = 'news-date';
+      dateEl.textContent = item.date;
+      info.appendChild(dateEl);
+      const summaryEl = document.createElement('p');
+      summaryEl.className = 'news-summary';
+      summaryEl.textContent = item.summary;
+      info.appendChild(summaryEl);
+      article.appendChild(info);
+      container.appendChild(article);
+    });
+  }
+  // Bind events
+  searchInput.addEventListener('input', render);
+  sortSelect.addEventListener('change', render);
+  // Initial render
+  render();
+}
+
+// Load an external HTML fragment into a target element and run a callback after insertion
+function loadElement(targetId, path, callback) {
+  // When running from the file system there is no origin.  Compute an absolute
+  // URL relative to the current file location to avoid fetch errors.  If the
+  // provided path begins with '/' or 'http' it is used as-is.
+  let url;
+  if (/^(https?:|file:|\/)/.test(path)) {
+    url = path;
+  } else {
+    const current = window.location.pathname;
+    const base = current.substring(0, current.lastIndexOf('/') + 1);
+    url = base + path;
+  }
+  fetch(url)
+    .then(response => {
+      if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+      return response.text();
+    })
+    .then(html => {
+      const target = document.getElementById(targetId);
+      if (target) {
+        target.innerHTML = html;
+        if (typeof callback === 'function') callback();
+      }
+    })
+    .catch(err => {
+      console.error(`Error loading ${url}:`, err);
+      // Use fallback markup if available
+      const target = document.getElementById(targetId);
+      if (target) {
+        if (targetId === 'header') {
+          target.innerHTML = fallbackHeader;
+          // After injecting fallback, initialise theme and nav
+          if (typeof callback === 'function') callback();
+        } else if (targetId === 'footer') {
+          target.innerHTML = fallbackFooter;
+        } else if (targetId === 'sidebar') {
+          target.innerHTML = fallbackSidebar;
+          // Ensure any provided callback executes even when using fallback sidebar
+          if (typeof callback === 'function') callback();
+        }
+      }
+    });
+}
+
+// Initialise dark/light theme behaviour
+function initTheme() {
+  const toggle = document.getElementById('themeToggle');
+  if (!toggle) return;
+  // Apply saved preference on load
+  const saved = localStorage.getItem('theme');
+  if (saved === 'dark') {
+    document.body.classList.add('dark-mode');
+  }
+  // Helper to update which icon is visible
+  function updateIcons() {
+    const sun = toggle.querySelector('.sun-icon');
+    const moon = toggle.querySelector('.moon-icon');
+    const isDark = document.body.classList.contains('dark-mode');
+    if (sun && moon) {
+      sun.style.display = isDark ? 'inline' : 'none';
+      moon.style.display = isDark ? 'none' : 'inline';
+    }
+  }
+  // Set initial icons
+  updateIcons();
+  // Toggle theme on button click
+  toggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    updateIcons();
+  });
+}
+
+// Generate navigation menu from configuration
+function generateNavigation() {
+  const navMenu = document.getElementById('navMenu');
+  if (!navMenu) return;
+  
+  // Clear existing content
+  navMenu.innerHTML = '';
+  
+  // Check if siteConfig exists
+  if (typeof window.siteConfig !== 'undefined' && window.siteConfig.Navigation) {
+    window.siteConfig.Navigation.forEach(item => {
+      if (item.display) {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = item.url;
+        a.textContent = item.label;
+        li.appendChild(a);
+        navMenu.appendChild(li);
+      }
+    });
+  } else {
+    // Fallback navigation if config not loaded
+    const fallbackNav = [
+      { label: 'Home', url: 'index.html' },
+      { label: 'Biography', url: 'about.html' },
+      { label: 'Research', url: 'research.html' },
+      { label: 'Publications', url: 'publications.html' },
+      { label: 'MSASect2', url: 'msasect2.html' },
+      { label: 'Contact', url: 'contact.html' }
+    ];
+    fallbackNav.forEach(item => {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.href = item.url;
+      a.textContent = item.label;
+      li.appendChild(a);
+      navMenu.appendChild(li);
+    });
+  }
+}
+
+// Initialise responsive navigation toggle
+function initNav() {
+  const navToggle = document.getElementById('navToggle');
+  const navMenu = document.getElementById('navMenu');
+  if (!navToggle || !navMenu) return;
+  
+  // Generate navigation from config
+  generateNavigation();
+  
+  navToggle.addEventListener('click', () => {
+    navMenu.classList.toggle('open');
+  });
+  
+  // Close menu when clicking a link (useful on mobile)
+  navMenu.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => {
+      navMenu.classList.remove('open');
+    });
+  });
+  
+  // Highlight active page
+  highlightActivePage();
+}
+
+// Highlight the current page in navigation
+function highlightActivePage() {
+  const navLinks = document.querySelectorAll('.nav-menu a');
+  const currentPath = window.location.pathname;
+  const currentFile = currentPath.split('/').pop() || 'index.html';
+  
+  navLinks.forEach(link => {
+    link.classList.remove('active');
+    const linkPath = link.getAttribute('href');
+    
+    // Handle special cases and direct matches
+    if (linkPath === currentFile || 
+        (currentFile === '' && linkPath === 'index.html') ||
+        (currentFile === 'index.html' && linkPath === 'index.html')) {
+      link.classList.add('active');
+    }
+  });
+}
+
+// Page transition effects - ultra fast and smooth
+function initPageTransitions() {
+  // Add fade-in effect to content on page load
+  const content = document.querySelector('.content');
+  if (content) {
+    content.classList.add('page-transition');
+    // Use requestAnimationFrame for smooth, immediate transition
+    requestAnimationFrame(() => {
+      content.classList.add('loaded');
+    });
+  }
+  
+  // Handle navigation link clicks with instant fade transitions
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a[href]');
+    if (link && link.href && !link.target && !e.ctrlKey && !e.metaKey) {
+      const href = link.getAttribute('href');
+      // Only apply to internal navigation links (not external, mailto, etc.)
+      if (href && !href.startsWith('http') && !href.startsWith('mailto:') && !href.startsWith('#')) {
+        e.preventDefault();
+        
+        // Add instant fade-out effect
+        const content = document.querySelector('.content');
+        if (content) {
+          content.style.transition = 'opacity 0.05s ease-out, transform 0.05s ease-out';
+          content.style.opacity = '0';
+          content.style.transform = 'translateY(-4px)';
+        }
+        
+        // Navigate immediately for ultra-fast feel
+        setTimeout(() => {
+          window.location.href = href;
+        }, 30);
+      }
+    }
+  });
+}
+
+// Initialise search bar interactions in the navigation bar.
+function initSearchBar() {
+  // Grab elements needed for the search bar
+  const container = document.getElementById('navSearch');
+  const input = document.getElementById('searchInput');
+  const button = document.getElementById('searchButton');
+  const clearBtn = document.getElementById('searchClear');
+  const suggestionsBox = document.getElementById('searchSuggestions');
+  const suggestionsCount = document.getElementById('searchSuggestionsCount');
+  const suggestionsList = document.getElementById('searchSuggestionsList');
+  if (!container || !input || !button || !clearBtn || !suggestionsBox || !suggestionsCount || !suggestionsList) return;
+
+  // Navigate to publications.html with the search query
+  function performSearch() {
+    const q = input.value.trim();
+    if (q) {
+      window.location.href = `publications.html?search=${encodeURIComponent(q)}`;
+    }
+  }
+
+  // Show or hide the clear button depending on input content
+  function updateClearButton() {
+    if (input.value.trim()) {
+      clearBtn.classList.add('visible');
+    } else {
+      clearBtn.classList.remove('visible');
+    }
+  }
+
+  // Hide suggestions dropdown
+  function hideSuggestions() {
+    suggestionsBox.style.display = 'none';
+    suggestionsList.innerHTML = '';
+    suggestionsCount.textContent = '';
+  }
+
+  // Generate suggestions based on current input
+  function updateSuggestions() {
+    const term = input.value.trim().toLowerCase();
+    updateClearButton();
+    if (!term) {
+      hideSuggestions();
+      return;
+    }
+    // Load search index once and then filter
+    loadSearchIndex().then(data => {
+      if (!Array.isArray(data) || data.length === 0) {
+        hideSuggestions();
+        return;
+      }
+      const matches = data.filter(item => {
+        return (item.title && item.title.toLowerCase().includes(term)) ||
+               (item.desc && item.desc.toLowerCase().includes(term));
+      }).slice(0, 6);
+      if (matches.length === 0) {
+        hideSuggestions();
+        return;
+      }
+      // Populate suggestions list
+      suggestionsList.innerHTML = '';
+      matches.forEach(item => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = item.url;
+        a.textContent = item.title;
+        li.appendChild(a);
+        suggestionsList.appendChild(li);
+      });
+      suggestionsCount.textContent = `${matches.length} result${matches.length === 1 ? '' : 's'}`;
+      suggestionsBox.style.display = 'block';
+    });
+  }
+
+  // Expand the search bar and focus input
+  function expandSearch() {
+    if (!container.classList.contains('active')) {
+      container.classList.add('active');
+      input.focus();
+    }
+  }
+
+  // Click on container or input expands search
+  container.addEventListener('click', (e) => {
+    e.stopPropagation();
+    expandSearch();
+  });
+  input.addEventListener('click', (e) => {
+    e.stopPropagation();
+    expandSearch();
+  });
+
+  // Update suggestions on input
+  input.addEventListener('input', updateSuggestions);
+
+  // Hide suggestions on blur
+  input.addEventListener('blur', () => {
+    // Delay hiding to allow click on suggestion
+    setTimeout(() => {
+      hideSuggestions();
+    }, 150);
+  });
+
+  // Clear search when pressing the clear button
+  clearBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    input.value = '';
+    updateClearButton();
+    hideSuggestions();
+    input.focus();
+  });
+
+  // Button click performs search if expanded and has query, otherwise expands
+  button.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (container.classList.contains('active')) {
+      const q = input.value.trim();
+      if (q) {
+        performSearch();
+      }
+    } else {
+      expandSearch();
+    }
+  });
+
+  // Pressing Enter triggers search
+  input.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      performSearch();
+    }
+  });
+
+  // Clicking anywhere outside collapses the search if empty
+  document.addEventListener('click', (e) => {
+    if (!container.contains(e.target) && container.classList.contains('active') && input.value.trim() === '') {
+      container.classList.remove('active');
+    }
+  });
+
+  // Initialise clear button visibility
+  updateClearButton();
+  // Hide suggestions initially
+  hideSuggestions();
+}
+
+// Initialize scroll-to-top button functionality
+function initScrollToTop() {
+  // Create the scroll-to-top button
+  const scrollButton = document.createElement('button');
+  scrollButton.className = 'scroll-to-top';
+  scrollButton.setAttribute('aria-label', 'Scroll to top');
+  scrollButton.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M7.247 4.86l-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z"/>
+    </svg>
+  `;
+  
+  // Add button to the page
+  document.body.appendChild(scrollButton);
+  
+  // Get the navigation bar
+  const navbar = document.querySelector('.site-nav');
+  
+  // Show/hide button based on scroll position and enhance navbar
+  function handleScroll() {
+    const scrollY = window.scrollY;
+    
+    // Handle scroll-to-top button visibility
+    if (scrollY > 300) {
+      scrollButton.classList.add('visible');
+    } else {
+      scrollButton.classList.remove('visible');
+    }
+    
+    // Add visual feedback to navbar when scrolling
+    if (navbar) {
+      if (scrollY > 50) {
+        navbar.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+        navbar.style.backdropFilter = 'blur(15px)';
+      } else {
+        navbar.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
+        navbar.style.backdropFilter = 'blur(10px)';
+      }
+    }
+  }
+  
+  // Smooth scroll to top
+  function scrollToTop() {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  }
+  
+  // Event listeners
+  window.addEventListener('scroll', handleScroll);
+  scrollButton.addEventListener('click', scrollToTop);
+  
+  // Initial check
+  handleScroll();
+}
+
+// Initialise search results page: parse query and display results
+function initSearchPage() {
+  const resultsContainer = document.getElementById('searchResults');
+  if (!resultsContainer) return;
+  const queryDisplay = document.getElementById('searchQueryDisplay');
+  // Parse query string
+  const params = new URLSearchParams(window.location.search);
+  const q = params.get('q') || '';
+  if (queryDisplay) {
+    queryDisplay.textContent = q;
+  }
+  const resultsCountEl = document.getElementById('searchResultsCount');
+  if (!q) {
+    if (resultsCountEl) resultsCountEl.textContent = '';
+    resultsContainer.textContent = ' Please enter a search term.';
+    return;
+  }
+  // Obtain data from embedded script or global variable.  The search
+  // index can be provided via a script tag with id="searchData" and
+  // type="application/json", or by setting window.searchIndex in an
+  // external JavaScript file (e.g. assets/js/search-data.js).  Falling back
+  // to the global variable helps when running offline, since the script tag
+  // might be omitted to avoid large inline JSON.
+  let data = [];
+  if (Array.isArray(window.searchIndex)) {
+    data = window.searchIndex;
+  } else {
+    const script = document.getElementById('searchData');
+    if (script) {
+      try {
+        data = JSON.parse(script.textContent);
+      } catch (e) {
+        console.error('Failed to parse search data', e);
+      }
+    }
+  }
+  const qlower = q.toLowerCase();
+  const matched = data.filter(item => {
+    return (item.title && item.title.toLowerCase().includes(qlower)) ||
+           (item.desc && item.desc.toLowerCase().includes(qlower));
+  });
+  if (resultsCountEl) {
+    resultsCountEl.textContent = ` – ${matched.length} result${matched.length === 1 ? '' : 's'} found`;
+  }
+  if (matched.length === 0) {
+    resultsContainer.textContent = 'No results found.';
+    return;
+  }
+  const list = document.createElement('ul');
+  list.className = 'search-results-list';
+  matched.forEach(item => {
+    const li = document.createElement('li');
+    const link = document.createElement('a');
+    link.href = item.url;
+    link.textContent = item.title;
+    li.appendChild(link);
+    list.appendChild(li);
+  });
+  resultsContainer.appendChild(list);
+}
+
+// Fetch and display publications from JSON file (publications.html)
+function loadPublications() {
+  const listEl = document.getElementById('publicationsList');
+  if (!listEl) return;
+  // If publication data is available globally (decoded from base64), use it
+  if (Array.isArray(window.publicationData)) {
+    try {
+      const data = window.publicationData.slice();
+      data.sort((a, b) => {
+        const numA = parseInt(String(a.id).match(/\d+/));
+        const numB = parseInt(String(b.id).match(/\d+/));
+        return numB - numA;
+      });
+      const fragment = document.createDocumentFragment();
+      data.forEach(pub => {
+        const li = document.createElement('li');
+        li.textContent = pub.citation;
+        fragment.appendChild(li);
+      });
+      listEl.appendChild(fragment);
+      return;
+    } catch (e) {
+      console.error('Failed to process global publicationData', e);
+    }
+  }
+  // Try to read publications from embedded JSON script first (offline friendly)
+  const script = document.getElementById('pubData');
+  if (script) {
+    try {
+      const data = JSON.parse(script.textContent);
+      data.sort((a, b) => {
+        const numA = parseInt(String(a.id).match(/\d+/));
+        const numB = parseInt(String(b.id).match(/\d+/));
+        return numB - numA;
+      });
+      const fragment = document.createDocumentFragment();
+      data.forEach(pub => {
+        const li = document.createElement('li');
+        li.textContent = pub.citation;
+        fragment.appendChild(li);
+      });
+      listEl.appendChild(fragment);
+      return;
+    } catch (e) {
+      console.error('Failed to parse embedded publications data', e);
+    }
+  }
+  // Fallback to fetch the JSON file (may not work offline but okay when served)
+  let url;
+  const rel = 'data/publications.json';
+  if (/^(https?:|file:|\/)/.test(rel)) {
+    url = rel;
+  } else {
+    const current = window.location.pathname;
+    const base = current.substring(0, current.lastIndexOf('/') + 1);
+    url = base + rel;
+  }
+  fetch(url)
+    .then(resp => resp.json())
+    .then(data => {
+      data.sort((a, b) => {
+        const numA = parseInt(String(a.id).match(/\d+/));
+        const numB = parseInt(String(b.id).match(/\d+/));
+        return numB - numA;
+      });
+      const fragment = document.createDocumentFragment();
+      data.forEach(pub => {
+        const li = document.createElement('li');
+        li.textContent = pub.citation;
+        fragment.appendChild(li);
+      });
+      listEl.appendChild(fragment);
+    })
+    .catch(err => {
+      console.error('Error loading publications:', err);
+      const msg = document.createElement('li');
+      msg.textContent = 'Publications cannot be loaded offline due to browser restrictions. Please host the site via a web server to view the full list.';
+      listEl.appendChild(msg);
+    });
+}
+
+// -----------------------------------------------------------------------------
+// News system
+//
+// The news system uses a global array `window.newsList` defined in
+// news/news-list.js.  Each item contains: slug, date, title, summary and
+// image path.  The functions below populate the latest news on the home
+// page and load individual news posts.  A dedicated news post page
+// (news-post.html) parses the slug from the query string and fetches the
+// corresponding HTML file under the `news/<slug>/news.html` path.
+
+// Load latest news items into an element with id="latestNews".  This
+// function should be called on the home page.
+function initNewsList() {
+  const container = document.getElementById('latestNews');
+  if (!container || !Array.isArray(window.newsList)) return;
+  // Sort news by slug (assuming YYYYMMDD) descending
+  const sorted = window.newsList.slice().sort((a, b) => b.slug.localeCompare(a.slug));
+  const latest = sorted.slice(0, 3);
+  latest.forEach(item => {
+    const article = document.createElement('article');
+    article.className = 'news-item';
+    // image thumbnail
+    const thumb = document.createElement('img');
+    thumb.src = item.image;
+    thumb.alt = item.title;
+    thumb.className = 'news-thumb';
+    article.appendChild(thumb);
+    // content container
+    const info = document.createElement('div');
+    info.className = 'news-info';
+    const title = document.createElement('h3');
+    const link = document.createElement('a');
+    link.href = `news-post.html?slug=${encodeURIComponent(item.slug)}`;
+    link.textContent = item.title;
+    title.appendChild(link);
+    info.appendChild(title);
+    const date = document.createElement('p');
+    date.className = 'news-date';
+    date.textContent = item.date;
+    info.appendChild(date);
+    const summary = document.createElement('p');
+    summary.className = 'news-summary';
+    summary.textContent = item.summary;
+    info.appendChild(summary);
+    article.appendChild(info);
+    container.appendChild(article);
+  });
+}
+
+// Load a single news post into the element with id="newsContent".  The
+// `slug` parameter is parsed from the query string of news-post.html.  This
+// function fetches the HTML fragment located at `news/<slug>/news.html` and
+// injects it into the page.  If the fetch fails (e.g., when opened via
+// file://), a message is displayed instead.
+function initNewsPost() {
+  const container = document.getElementById('newsContent');
+  if (!container) return;
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get('slug');
+  if (!slug) {
+    container.innerHTML = '<p>No news specified.</p>';
+    return;
+  }
+  // Build relative path to the news file.  We use Markdown (news.md)
+  // instead of HTML so that the same content can be displayed via
+  // file:// and HTTP protocols.  The Markdown will be parsed to
+  // HTML using markdownToHTML() below.
+  let url;
+  const rel = `news/${slug}/news.md`;
+  if (/^(https?:|file:|\/)/.test(rel)) {
+    url = rel;
+  } else {
+    const current = window.location.pathname;
+    const base = current.substring(0, current.lastIndexOf('/') + 1);
+    url = base + rel;
+  }
+  fetch(url)
+    .then(resp => {
+      if (!resp.ok) throw new Error(resp.statusText);
+      return resp.text();
+    })
+    .then(md => {
+      // Convert markdown to HTML
+      let html = markdownToHTML(md);
+      container.innerHTML = html;
+      // Fix image paths: prefix relative sources with the slug directory
+      const imgs = container.querySelectorAll('img');
+      imgs.forEach(img => {
+        const src = img.getAttribute('src');
+        if (!/^(https?:|file:|\/)/.test(src)) {
+          img.setAttribute('src', `news/${slug}/` + src);
+        }
+      });
+    })
+    .catch(err => {
+      console.error('Failed to load news', err);
+      container.innerHTML = '<p>Unable to load this news article offline. Please host the site on a web server.</p>';
+    });
+}
+
+// -----------------------------------------------------------------------------
+// Publications page
+//
+// The publications page allows filtering and searching the list of
+// publications.  Data is loaded from window.publications (defined in
+// assets/js/publications.js).  The user can filter by type and search by
+// keywords.  Results are sorted in descending order by year.
+function initPublicationsPage() {
+  const listEl = document.getElementById('publicationsList');
+  const filterSelect = document.getElementById('pubTypeFilter');
+  const searchInput = document.getElementById('pubSearch');
+  const countEl = document.getElementById('pubCount');
+  if (!listEl || !filterSelect || !searchInput || !countEl || !Array.isArray(window.publications)) return;
+  const data = window.publications.slice();
+  function render() {
+    const type = filterSelect.value;
+    const query = searchInput.value.trim().toLowerCase();
+    let filtered = data;
+    if (type !== 'All') {
+      filtered = filtered.filter(p => p.type === type);
+    }
+    if (query) {
+      filtered = filtered.filter(p => p.citation.toLowerCase().includes(query));
+    }
+    // Sort by year descending, fallback to id
+    filtered.sort((a, b) => {
+      if (b.year !== a.year) return b.year - a.year;
+      return String(b.id).localeCompare(String(a.id));
+    });
+    countEl.textContent = `${filtered.length} publication${filtered.length === 1 ? '' : 's'} found`;
+    // Clear existing list
+    listEl.innerHTML = '';
+    filtered.forEach(p => {
+      const li = document.createElement('li');
+      li.className = 'publication-item';
+      let html = '';
+      html += `<span class="pub-year">${p.year}</span> `;
+      html += p.citation;
+      if (p.doi) {
+        html += ` DOI: <a href="https://doi.org/${p.doi}" target="_blank">${p.doi}</a>.`;
+      }
+      if (p.link) {
+        html += ` <a href="${p.link}" target="_blank">Journal page</a>`;
+      }
+      li.innerHTML = html;
+      listEl.appendChild(li);
+    });
+  }
+  filterSelect.addEventListener('change', render);
+  searchInput.addEventListener('input', render);
+  render();
+}
+
+// Handle mobile sidebar visibility
+// Hide sidebar on mobile devices for all pages except home page
+let mobileSidebarHandlerInitialized = false;
+let resizeTimer = null;
+
+function handleMobileSidebarVisibility() {
+  const sidebar = document.getElementById('sidebar');
+  const bodyId = document.body.getAttribute('id');
+  
+  if (!sidebar) return;
+  
+  // Check if device is mobile (typically <= 768px)
+  function isMobileDevice() {
+    return window.innerWidth <= 768;
+  }
+  
+  // Function to show/hide sidebar based on device and page
+  function updateSidebarVisibility() {
+    const isMobile = isMobileDevice();
+    const isHomePage = bodyId === 'home-page';
+    
+    if (isMobile && !isHomePage) {
+      // Hide sidebar on mobile for non-home pages
+      sidebar.style.display = 'none';
+    } else {
+      // Show sidebar on desktop or on home page (even mobile)
+      sidebar.style.display = '';
+    }
+  }
+  
+  // Initial check
+  updateSidebarVisibility();
+  
+  // Only add resize listener once to avoid duplicates
+  if (!mobileSidebarHandlerInitialized) {
+    mobileSidebarHandlerInitialized = true;
+    // Update on window resize (handles orientation changes and window resizing)
+    window.addEventListener('resize', () => {
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        const sidebarEl = document.getElementById('sidebar');
+        if (sidebarEl) {
+          const currentBodyId = document.body.getAttribute('id');
+          const isMobile = window.innerWidth <= 768;
+          const isHomePage = currentBodyId === 'home-page';
+          
+          if (isMobile && !isHomePage) {
+            sidebarEl.style.display = 'none';
+          } else {
+            sidebarEl.style.display = '';
+          }
+        }
+      }, 100); // Debounce resize events
+    });
+  }
+}
+
+// Initialize research interest tags in sidebar
+function initResearchTags() {
+  // Research interest tags data
+  const researchTags = [
+    'Steel Structures',
+    'Stability Analysis',
+    'Cross-Section',
+    'Composite',
+    'Buckling',
+    'Bamboo',
+    'Glass',
+    'Machine Learning',
+    'Numerical',
+    'Line Element'
+  ];
+
+  // Color palette for tags (professional academic colors)
+  const tagColors = [
+    '#1976d2', // Blue
+    '#388e3c', // Green
+    '#d32f2f', // Red
+    '#7b1fa2', // Purple
+    '#f57c00', // Orange
+    '#0097a7', // Cyan
+    '#5d4037', // Brown
+    '#455a64', // Blue Grey
+    '#c2185b', // Pink
+    '#303f9f'  // Indigo
+  ];
+
+  // Create pairs of tags and colors, then shuffle them together
+  const tagColorPairs = researchTags.map((tag, index) => ({
+    tag: tag,
+    color: tagColors[index % tagColors.length]
+  }));
+
+  // Randomize the order using Fisher-Yates shuffle algorithm
+  for (let i = tagColorPairs.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [tagColorPairs[i], tagColorPairs[j]] = [tagColorPairs[j], tagColorPairs[i]];
+  }
+
+  const container = document.getElementById('researchTagsContainer');
+  if (!container) {
+    console.log('Research tags container not found');
+    return;
+  }
+
+  // Clear any existing content
+  container.innerHTML = '';
+
+    tagColorPairs.forEach((pair, index) => {
+    const tagElement = document.createElement('span');
+    tagElement.className = 'research-tag';
+    tagElement.textContent = pair.tag;
+    tagElement.style.setProperty('--tag-color', pair.color);
+    tagElement.style.setProperty('--animation-delay', (index * 0.05) + 's');
+    
+    // Add click handler
+    tagElement.addEventListener('click', function() {
+      // Navigate to publications page with the tag as search query
+      const searchUrl = 'publications.html?search=' + encodeURIComponent(pair.tag);
+      window.location.href = searchUrl;
+    });
+
+    container.appendChild(tagElement);
+  });
+  
+  console.log('Research tags initialized: ' + researchTags.length + ' tags');
+}
+
+// -----------------------------------------------------------------------------
+// Google Scholar citation metrics
+//
+// This function fetches the citation statistics from Google Scholar and populates
+// the table displayed in the sidebar.  The HTML structure is defined in
+// elements/left-sidebar.html and fallbackSidebar above.  We attempt to fetch
+// the user's Google Scholar profile via a CORS proxy.  If the fetch fails
+// (for example due to network or CORS restrictions) we fall back to static
+// numbers.  See README for details.
+async function loadCitationMetrics() {
+  const ids = {
+    citationsAll: document.getElementById('citations-all'),
+    citationsSince: document.getElementById('citations-since'),
+    hindexAll: document.getElementById('hindex-all'),
+    hindexSince: document.getElementById('hindex-since'),
+    i10All: document.getElementById('i10-all'),
+    i10Since: document.getElementById('i10-since'),
+  };
+  // Only proceed if the citation table exists on this page
+  if (!ids.citationsAll) return;
+  function setFallback() {
+    // Static values from October 2025; update manually if needed
+    ids.citationsAll.textContent = '1415';
+    ids.citationsSince.textContent = '1125';
+    ids.hindexAll.textContent = '21';
+    ids.hindexSince.textContent = '19';
+    ids.i10All.textContent = '44';
+    ids.i10Since.textContent = '40';
+  }
+  try {
+    // Use a simple CORS proxy to bypass Google Scholar's origin restrictions
+    const url = 'https://cors.isomorphic-git.org/https://scholar.google.com/citations?user=pltU9uwAAAAJ&hl=EN';
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('Network response was not ok');
+    const text = await resp.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(text, 'text/html');
+    const cells = doc.querySelectorAll('td.gsc_rsb_std');
+    if (cells && cells.length >= 6) {
+      ids.citationsAll.textContent = cells[0].textContent.trim();
+      ids.hindexAll.textContent = cells[1].textContent.trim();
+      ids.i10All.textContent = cells[2].textContent.trim();
+      ids.citationsSince.textContent = cells[3].textContent.trim();
+      ids.hindexSince.textContent = cells[4].textContent.trim();
+      ids.i10Since.textContent = cells[5].textContent.trim();
+    } else {
+      setFallback();
+    }
+  } catch (err) {
+    console.error('Failed to load Google Scholar metrics:', err);
+    setFallback();
+  }
+}
+
+// When DOM content is loaded, load header/footer and run page-specific functions
+document.addEventListener('DOMContentLoaded', () => {
+  // Initialize page transitions first
+  initPageTransitions();
+  
+  // Initialize scroll-to-top button
+  initScrollToTop();
+  
+  // Load header and initialise theme, navigation and search after insertion
+  loadElement('header', 'elements/header.html', () => {
+    initTheme();
+    initNav();
+    initSearchBar();
+  });
+  // Load sidebar (left panel) if present in the DOM
+  loadElement('sidebar', 'elements/left-sidebar.html', () => {
+    // Once the sidebar has loaded (either via fetch or fallback), initialise research tags
+    setTimeout(() => {
+      initResearchTags();
+      // Handle mobile sidebar visibility after sidebar is loaded
+      handleMobileSidebarVisibility();
+    }, 100);
+  });
+  // Load footer
+  loadElement('footer', 'elements/footer.html');
+  // Determine current page by checking body ID
+  const bodyId = document.body.getAttribute('id');
+  if (bodyId === 'home-page') {
+    initNewsList();
+  }
+  if (bodyId === 'publications-page') {
+    initPublicationsPage();
+  }
+  if (bodyId === 'news-post-page') {
+    initNewsPost();
+  }
+  if (bodyId === 'search-page') {
+    initSearchPage();
+  }
+  if (bodyId === 'news-page') {
+    initNewsPage();
+  }
+
+  // When using the fallback sidebar there is no citation table to populate, so
+  // we no longer schedule a call to loadCitationMetrics here.
+  
+  // Ensure mobile sidebar visibility is handled even if sidebar loads later
+  // This is a fallback in case the sidebar callback doesn't fire
+  setTimeout(() => {
+    handleMobileSidebarVisibility();
+  }, 500);
+});

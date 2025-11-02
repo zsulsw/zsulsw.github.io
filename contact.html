@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact | Ir Dr. Siwei LIU</title>
+  <meta name="description" content="Contact details for Dr. Siwei Liu at The Hong Kong Polytechnic University.">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <style>
+    .contact-form {
+      width: 100%;
+      margin-top: 1rem;
+      margin-bottom: 0;
+      padding: 2rem;
+      background-color: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    body.dark-mode .contact-form {
+      background-color: #1e1e1e;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+    
+    #contactForm {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-group:first-of-type {
+      margin-top: 0;
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-group:last-of-type {
+      margin-bottom: 0;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: var(--text-color);
+    }
+    
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--nav-border);
+      border-radius: 4px;
+      font-size: 1rem;
+      font-family: inherit;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      transition: border-color 0.3s ease;
+      box-sizing: border-box;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+    }
+    
+    /* Ensure select elements have consistent padding */
+    .form-group select {
+      padding: 0.75rem;
+      padding-right: 2.5rem;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.75rem center;
+      cursor: pointer;
+    }
+    
+    body.dark-mode .form-group select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23e0e0e0' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    }
+    
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--link-color);
+    }
+    
+    .form-group textarea {
+      resize: vertical;
+      min-height: 180px;
+    }
+    
+    .form-group .required {
+      color: #d32f2f;
+    }
+    
+    .submit-btn {
+      background-color: var(--link-color);
+      color: white;
+      padding: 0.875rem 2rem;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .submit-btn-wrapper {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 1.5rem;
+      margin-bottom: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+    
+    .submit-btn:hover {
+      background-color: #1565c0;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    
+    .submit-btn:active {
+      transform: translateY(0);
+    }
+    
+    .contact-info {
+      margin: 2rem 0;
+      padding: 1.5rem;
+      background-color: var(--card-bg);
+      border-left: 4px solid var(--link-color);
+      border-radius: 4px;
+    }
+    
+    .contact-info h3 {
+      margin-top: 0;
+      margin-bottom: 1rem;
+      color: var(--text-color);
+    }
+    
+    .contact-info ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .contact-info li {
+      margin-bottom: 0.75rem;
+      color: var(--text-color);
+    }
+    
+    .contact-info a {
+      color: var(--link-color);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    
+    .contact-info a:hover {
+      color: #1565c0;
+      text-decoration: underline;
+    }
+    
+    body.dark-mode .contact-info {
+      background-color: var(--card-bg);
+    }
+    
+    body.dark-mode .form-group input,
+    body.dark-mode .form-group textarea,
+    body.dark-mode .form-group select {
+      background-color: var(--bg-color);
+      border-color: var(--nav-border);
+      color: var(--text-color);
+    }
+  </style>
+</head>
+<body id="contact-page">
+  <div id="header"></div>
+  <div class="layout">
+    <div id="sidebar"></div>
+    <main class="content">
+      <div class="contact-form">
+        <form id="contactForm">
+          <div class="form-group">
+            <label for="name">Name <span class="required">*</span></label>
+            <input type="text" id="name" name="name" required placeholder="Your full name">
+          </div>
+          
+          <div class="form-group">
+            <label for="email">Email <span class="required">*</span></label>
+            <input type="email" id="email" name="email" required placeholder="your.email@example.com">
+          </div>
+          
+          <div class="form-group">
+            <label for="affiliation">Affiliation</label>
+            <input type="text" id="affiliation" name="affiliation" placeholder="Your university or organization">
+          </div>
+          
+          <div class="form-group">
+            <label for="subject">Subject <span class="required">*</span></label>
+            <select id="subject" name="subject" required>
+              <option value="">Please select a subject</option>
+              <option value="PhD Application">PhD Application</option>
+              <option value="Research Collaboration">Research Collaboration</option>
+              <option value="MSASect2 Software">MSASect2 Software</option>
+              <option value="General Enquiry">General Enquiry</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="message">Message <span class="required">*</span></label>
+            <textarea id="message" name="message" required placeholder="Please provide details about your enquiry..."></textarea>
+          </div>
+          
+          <div class="submit-btn-wrapper">
+            <button type="submit" class="submit-btn">Send Email</button>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+  <div id="footer"></div>
+  <script src="configuration.js"></script>
+  <script src="assets/js/main.js?v=20251005"></script>
+  <script>
+    // Handle form submission
+    document.getElementById('contactForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Get form values
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const affiliation = document.getElementById('affiliation').value;
+      const subject = document.getElementById('subject').value;
+      const message = document.getElementById('message').value;
+      
+      // Construct email body
+      let emailBody = `Dear Dr. Liu,\n\n`;
+      emailBody += `${message}\n\n`;
+      emailBody += `Best regards,\n\n`;
+      emailBody += `${name}\n`;
+      if (affiliation) {
+        emailBody += `${affiliation}\n`;
+      }
+      emailBody += `Email: ${email}`;
+      
+      // Construct mailto link
+      const mailtoLink = `mailto:si-wei.liu@polyu.edu.hk?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
+      
+      // Open email client
+      window.location.href = mailtoLink;
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+[
+  {
+    "title": "Home",
+    "url": "index.html",
+    "desc": "Overview of Ir Dr. Siwei Liu\u2019s personal website, research highlights and introduction."
+  },
+  {
+    "title": "About",
+    "url": "about.html",
+    "desc": "Biography, education, professional qualifications, work experience, honours and research impact of Ir Dr. Siwei Liu."
+  },
+  {
+    "title": "Research",
+    "url": "research.html",
+    "desc": "Research areas covering steel structures & stability, constructional 3D printing, computational mechanics and artificial intelligence."
+  },
+  {
+    "title": "Publications",
+    "url": "publications.html",
+    "desc": "Complete list of journal papers, conference proceedings and other publications by Ir Dr. Siwei Liu."
+  },
+  {
+    "title": "Teaching",
+    "url": "teaching.html",
+    "desc": "Courses and teaching subjects taught by Ir Dr. Siwei Liu at undergraduate and postgraduate levels."
+  },
+  {
+    "title": "MSASect2",
+    "url": "msasect2.html",
+    "desc": "Overview of the MSASect2 software with features including cross\u2011section properties, buckling analysis, yield\u2011surface analysis, stress and heat\u2011transfer analysis, and moment curvature analysis."
+  },
+  {
+    "title": "Team",
+    "url": "team.html",
+    "desc": "Research group members and MSASect2 software development team."
+  },
+  {
+    "title": "Contact",
+    "url": "contact.html",
+    "desc": "Contact details and ways to get in touch with Ir Dr. Siwei Liu."
+  }
+]

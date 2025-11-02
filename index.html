@@ -1,20 +1,437 @@
 <!DOCTYPE html>
-<!--
-
--->
-
 <html lang="en">
 <head>
-  <title>Welcome to Dr Siwei Liu's Website</title>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="lib/bootstrap.min.css">
-  <script src="lib/jquery.min.js"></script>
-  <script src="lib/bootstrap.min.css"></script>
-  <link href='lib/css.css' rel='stylesheet' type='text/css'>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to Dr. Siwei Liu's Website</title>
+  <meta name="description" content="Official website of Dr. Siwei Liu, detailing his research in structural engineering, additive manufacturing and teaching activities at The Hong Kong Polytechnic University.">
+  <!-- Favicon for all pages -->
+  <link rel="icon" href="assets/images/logo.png" type="image/png">
+  <link rel="stylesheet" href="assets/css/style.css">
 </head>
-<body>
-
-</body>
-
+  <body id="home-page">
+  <div id="header"></div>
+  <div class="layout">
+    <div id="sidebar"></div>
+    <main class="content">
+      <div id="welcomeContent"></div>
+      <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--nav-border); opacity: 0.5;">
+      <div id="jobContent"></div>
+      <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--nav-border); opacity: 0.5;">
+      <section id="recentPublications">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h2 style="margin: 0;">Recent Publications</h2>
+          <a href="publications.html" style="text-decoration: none; color: var(--link-color); font-weight: 500;">View all →</a>
+        </div>
+        <div id="recentPublicationsCarousel" style="position: relative;">
+          <div id="recentPublicationsContainer" style="min-height: 200px; transition: opacity 0.3s ease-in-out;"></div>
+          <div id="recentPublicationsControls" style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem; padding: 0.25rem 0;">
+            <button id="prevPublication" style="background: var(--card-bg); border: 1px solid var(--nav-border); padding: 0.35rem 0.75rem; border-radius: 4px; cursor: pointer; color: var(--text-color); font-size: 0.8rem; transition: all 0.2s ease;">← Previous</button>
+            <div id="publicationCounter" style="color: var(--text-color); opacity: 0.7; font-size: 0.8rem; min-width: 50px; text-align: center;">1 / 5</div>
+            <button id="nextPublication" style="background: var(--card-bg); border: 1px solid var(--nav-border); padding: 0.35rem 0.75rem; border-radius: 4px; cursor: pointer; color: var(--text-color); font-size: 0.8rem; transition: all 0.2s ease;">Next →</button>
+          </div>
+        </div>
+        <style>
+          #prevPublication:hover, #nextPublication:hover {
+            background-color: var(--link-color);
+            color: white;
+            border-color: var(--link-color);
+          }
+          #prevPublication:active, #nextPublication:active {
+            transform: scale(0.95);
+          }
+          #recentPublicationsContainer .publication-item {
+            animation: fadeIn 0.3s ease-in-out;
+          }
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          /* Add moderate spacing between content and footer on home page */
+          #home-page #footer .site-footer,
+          #home-page .site-footer {
+            margin-top: 1rem !important;
+            padding-top: 1rem !important;
+            padding-bottom: 1rem !important;
+          }
+          #home-page .layout {
+            margin-bottom: 0 !important;
+          }
+          #home-page .content {
+            padding-bottom: 0 !important;
+          }
+          #home-page main {
+            margin-bottom: 0 !important;
+            padding-bottom: 0 !important;
+          }
+        </style>
+      </section>
+    </main>
+  </div>
+  <div id="footer"></div>
+  <script src="configuration.js"></script>
+  <script src="assets/js/main.js?v=20251005"></script>
+  <script src="assets/js/publications.js"></script>
+  <script>
+    // Load welcome and job markdown files
+    document.addEventListener('DOMContentLoaded', function() {
+      // Load welcome message
+      loadMarkdown('pages/welcome.md', 'welcomeContent');
+      
+      // Load job information
+      loadMarkdown('pages/job.md', 'jobContent');
+      
+      // Recent publications carousel
+      let recentPublications = [];
+      let currentPublicationIndex = 0;
+      let autoRotateTimer = null;
+      let isPaused = false;
+      
+      // Format authors list (same as publications.js)
+      function formatAuthors(authors, correspondingAuthor) {
+        if (!Array.isArray(authors)) return '';
+        if (authors.length === 0) return '';
+        const formatted = authors.map(author => author);
+        if (formatted.length === 1) return formatted[0];
+        if (formatted.length === 2) return formatted.join(' and ');
+        const last = formatted[formatted.length - 1];
+        const rest = formatted.slice(0, -1);
+        return rest.join(', ') + ', and ' + last;
+      }
+      
+      // Format publication date
+      function formatPublicationDate(pubDate) {
+        if (!pubDate) return '';
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                        'July', 'August', 'September', 'October', 'November', 'December'];
+        const parts = pubDate.split('-');
+        if (parts.length >= 2) {
+          const year = parts[0];
+          const month = parseInt(parts[1]) - 1;
+          if (month >= 0 && month < 12) {
+            return `${months[month]} ${year}`;
+          }
+          return year;
+        }
+        return pubDate;
+      }
+      
+      // Render a single publication item
+      function renderPublicationItem(paper) {
+        const paperId = paper.id || '';
+        const title = paper.title || '';
+        const authors = paper.authors || [];
+        const correspondingAuthor = paper['corresponding author'] || '';
+        const abstract = paper.abstract || '';
+        const keywords = paper.keywords || [];
+        const doi = paper.doi || '';
+        const weblink = paper.weblink || paper.link || '';
+        const apa = paper.APA || '';
+        const journal = paper.journal || '';
+        const volume = paper.volume || '';
+        const pubDate = formatPublicationDate(paper['publication-date'] || paper.year);
+        
+        let html = '';
+        html += '<li class="publication-item" style="list-style: none; padding: 0; margin: 0;">';
+        
+        // Line 1: Paper ID and Title
+        html += `<div class="paper-line-1">`;
+        html += `<span class="paper-id">${paperId}</span> `;
+        html += `<span class="paper-title">${title}</span>`;
+        html += `</div>`;
+        
+        // Line 2: Publication date, Journal name, volume
+        html += `<div class="paper-line-2">`;
+        const parts = [];
+        if (pubDate) {
+          parts.push(`<span class="paper-date">${pubDate}</span>`);
+        }
+        if (journal) {
+          parts.push(`<span class="paper-journal">${journal}</span>`);
+        }
+        if (volume) {
+          parts.push(`<span class="paper-volume">${volume}</span>`);
+        }
+        html += parts.join(' <span class="paper-separator">|</span> ');
+        html += `</div>`;
+        
+        // Line 3: DOI link
+        if (doi) {
+          const doiUrl = doi.startsWith('http') ? doi : `https://doi.org/${doi}`;
+          html += `<div class="paper-line-3">`;
+          html += `<span class="paper-doi-label">DOI:</span> `;
+          html += `<a href="${doiUrl}" target="_blank" rel="noopener" class="paper-doi-link">${doiUrl}</a>`;
+          html += `</div>`;
+        }
+        
+        // Line 4: Authors
+        html += `<div class="paper-line-4">`;
+        html += formatAuthors(authors, correspondingAuthor);
+        html += `</div>`;
+        
+        // Citation (APA)
+        if (apa) {
+          html += `<div class="paper-citation-line" style="margin-top: 0.5rem;">`;
+          html += `<span class="citation-label">Citation (APA):</span> `;
+          html += `<span class="citation-text">${apa}</span>`;
+          html += `</div>`;
+        }
+        
+        html += '</li>';
+        return html;
+      }
+      
+      // Setup abstract toggle functionality (same as publications.js)
+      function setupAbstractToggle() {
+        const abstractContainers = document.querySelectorAll('.paper-abstract-container');
+        
+        abstractContainers.forEach(container => {
+          const paperItem = container.closest('.publication-item');
+          const abstractHidden = container.querySelector('.paper-abstract-hidden');
+          const abstractToggleBtn = container.querySelector('.abstract-toggle-btn');
+          const abstractClickText = container.querySelector('.abstract-click-text');
+          const abstractContentWrapper = container.querySelector('.abstract-content-wrapper');
+          
+          if (!paperItem || !abstractHidden) return;
+          
+          // Only setup once
+          if (paperItem.dataset.abstractSetup === 'true') return;
+          paperItem.dataset.abstractSetup = 'true';
+          
+          // Initially show the abstract content (already visible from HTML)
+          
+          // Click handler for "Click to show abstract" text
+          if (abstractClickText) {
+            abstractClickText.addEventListener('click', (e) => {
+              e.stopPropagation();
+              // Show abstract content
+              abstractClickText.style.display = 'none';
+              if (abstractContentWrapper) {
+                abstractContentWrapper.style.display = 'block';
+              }
+              abstractHidden.classList.add('visible');
+            });
+          }
+          
+          // Click handler for "Hide abstract" button
+          if (abstractToggleBtn) {
+            abstractToggleBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              // Hide abstract content
+              abstractHidden.classList.remove('visible');
+              if (abstractContentWrapper) {
+                abstractContentWrapper.style.display = 'none';
+              }
+              if (abstractClickText) {
+                abstractClickText.style.display = 'block';
+              }
+            });
+          }
+          
+          // Click handler for abstract text itself to fold (but not if clicking on links)
+          if (abstractHidden) {
+            abstractHidden.addEventListener('click', (e) => {
+              // Don't fold if clicking on links
+              if (e.target.tagName === 'A' || e.target.closest('a')) {
+                return;
+              }
+              e.stopPropagation();
+              // Hide abstract content
+              abstractHidden.classList.remove('visible');
+              if (abstractContentWrapper) {
+                abstractContentWrapper.style.display = 'none';
+              }
+              if (abstractClickText) {
+                abstractClickText.style.display = 'block';
+              }
+            });
+          }
+        });
+      }
+      
+      // Display current publication
+      function showPublication(index) {
+        const container = document.getElementById('recentPublicationsContainer');
+        const counter = document.getElementById('publicationCounter');
+        if (!container || recentPublications.length === 0) return;
+        
+        if (index < 0) index = recentPublications.length - 1;
+        if (index >= recentPublications.length) index = 0;
+        
+        currentPublicationIndex = index;
+        const paper = recentPublications[index];
+        
+        // Fade out effect
+        container.style.opacity = '0';
+        
+        setTimeout(() => {
+          container.innerHTML = '<ul style="list-style: none; padding: 0; margin: 0;">' + renderPublicationItem(paper) + '</ul>';
+          container.style.opacity = '1';
+          
+          // Setup abstract toggle after rendering
+          setTimeout(() => {
+            setupAbstractToggle();
+          }, 50);
+          
+          if (counter) {
+            counter.textContent = `${index + 1} / ${recentPublications.length}`;
+          }
+        }, 150);
+      }
+      
+      // Next publication
+      function nextPublication(resetTimer = true) {
+        showPublication(currentPublicationIndex + 1);
+        if (resetTimer) {
+          resetAutoRotate();
+        }
+      }
+      
+      // Previous publication
+      function prevPublication() {
+        showPublication(currentPublicationIndex - 1);
+        resetAutoRotate();
+      }
+      
+      // Auto-rotate functionality
+      function startAutoRotate() {
+        if (isPaused) return;
+        clearInterval(autoRotateTimer);
+        autoRotateTimer = setInterval(() => {
+          if (!isPaused) {
+            nextPublication(false); // Don't reset timer when auto-rotating
+          }
+        }, 5000); // 5 seconds
+      }
+      
+      function resetAutoRotate() {
+        clearInterval(autoRotateTimer);
+        if (!isPaused) {
+          startAutoRotate();
+        }
+      }
+      
+      function pauseAutoRotate() {
+        isPaused = true;
+        clearInterval(autoRotateTimer);
+      }
+      
+      // Load and display recent 5 publications
+      async function loadRecentPublications() {
+        try {
+          // Load journal papers
+          const journalData = await loadJournalData();
+          const conferenceData = await loadConferenceData();
+          
+          // Combine and sort by publication date (newest first)
+          let allPublications = [];
+          
+          journalData.forEach(pub => {
+            allPublications.push({
+              ...pub,
+              type: 'Journal Paper',
+              date: pub['publication-date'] || `${pub.year}-01`
+            });
+          });
+          
+          conferenceData.forEach(pub => {
+            allPublications.push({
+              ...pub,
+              type: 'Conference Paper',
+              date: pub['publication-date'] || `${pub.year}-01`
+            });
+          });
+          
+          // Sort by date (newest first) to get the 5 most recent
+          allPublications.sort((a, b) => {
+            const dateA = a.date || '';
+            const dateB = b.date || '';
+            return dateB.localeCompare(dateA);
+          });
+          
+          // Get top 5 most recent
+          const top5 = allPublications.slice(0, 5);
+          
+          // Randomize the order of these 5 publications
+          if (top5.length > 1) {
+            // Shuffle using Fisher-Yates algorithm
+            for (let i = top5.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [top5[i], top5[j]] = [top5[j], top5[i]];
+            }
+          }
+          
+          recentPublications = top5;
+          
+          if (recentPublications.length === 0) {
+            const container = document.getElementById('recentPublicationsContainer');
+            if (container) {
+              container.innerHTML = '<p>No publications found.</p>';
+            }
+            return;
+          }
+          
+          // Show first publication
+          showPublication(0);
+          
+          // Setup navigation buttons
+          const prevBtn = document.getElementById('prevPublication');
+          const nextBtn = document.getElementById('nextPublication');
+          
+          if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+              prevPublication();
+              pauseAutoRotate();
+            });
+          }
+          
+          if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+              nextPublication();
+              pauseAutoRotate();
+            });
+          }
+          
+          // Pause auto-rotate on any interaction with the carousel
+          const carousel = document.getElementById('recentPublicationsCarousel');
+          if (carousel) {
+            carousel.addEventListener('click', () => {
+              pauseAutoRotate();
+            });
+          }
+          
+          // Start auto-rotation
+          startAutoRotate();
+          
+        } catch (error) {
+          console.error('Error loading recent publications:', error);
+          const container = document.getElementById('recentPublicationsContainer');
+          if (container) {
+            container.innerHTML = '<p>Unable to load publications. Please visit the <a href="publications.html">Publications</a> page.</p>';
+          }
+        }
+      }
+      
+      loadRecentPublications();
+      
+      // Set footer spacing after footer loads
+      function setFooterSpacing() {
+        const footer = document.getElementById('footer');
+        if (footer) {
+          const siteFooter = footer.querySelector('.site-footer');
+          if (siteFooter) {
+            siteFooter.style.marginTop = '2rem';
+            siteFooter.style.paddingTop = '1rem';
+            siteFooter.style.paddingBottom = '1rem';
+          }
+        }
+      }
+      
+      // Try immediately and also after a delay to catch dynamically loaded footer
+      setFooterSpacing();
+      setTimeout(setFooterSpacing, 100);
+      setTimeout(setFooterSpacing, 500);
+    });
+  </script>
+  </body>
 </html>

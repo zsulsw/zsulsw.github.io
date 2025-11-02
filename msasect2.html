@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MSASect2 | Ir Dr. Siwei LIU</title>
+  <meta name="description" content="MSASect2 - Matrix Structural Analysis Software for Arbitrary Cross-sections - for academic and educational use">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body id="msasect2-page">
+  <div id="header"></div>
+  <div class="layout">
+    <div id="sidebar"></div>
+    <main class="content">
+      <div id="msasect2Content"></div>
+    </main>
+  </div>
+  <div id="footer"></div>
+  <script src="configuration.js"></script>
+  <script src="assets/js/main.js?v=20251005"></script>
+  <script>
+    // Load msasect2.md content
+    if (typeof loadMarkdown === 'function') {
+      loadMarkdown('pages/msasect2.md', 'msasect2Content');
+    }
+  </script>
+</body>
+</html>

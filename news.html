@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>News – Siwei Liu</title>
+  <meta name="description" content="Latest news and announcements from Ir Dr. Siwei Liu’s research group.">
+  <link rel="icon" href="assets/images/logo.png" type="image/png">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body id="news-page">
+  <!-- Header will be injected by main.js -->
+  <div id="header"></div>
+  <div class="layout">
+    <div id="sidebar"></div>
+    <main class="content">
+      <section>
+        <h1>News</h1>
+        <p>Stay up to date with the latest developments, publications and events from our research team.</p>
+        <!-- Controls for filtering and sorting news -->
+        <div class="news-controls" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin-bottom: 1rem;">
+          <label for="newsSearch" style="font-weight: 500;">Search:</label>
+          <input type="text" id="newsSearch" placeholder="Search news…" style="flex: 1; min-width: 200px; padding: 0.4rem; border: 1px solid var(--nav-border); border-radius: 4px;">
+          <label for="newsSort" style="font-weight: 500; margin-left: 1rem;">Sort by:</label>
+          <select id="newsSort" style="padding: 0.4rem; border: 1px solid var(--nav-border); border-radius: 4px;">
+            <option value="newest" selected>Newest</option>
+            <option value="oldest">Oldest</option>
+          </select>
+        </div>
+        <div id="allNews" class="news-list"></div>
+      </section>
+    </main>
+  </div>
+  <!-- Footer will be injected by main.js -->
+  <div id="footer"></div>
+  <script src="news/news-list.js"></script>
+  <script src="assets/js/main.js?v=20251003"></script>
+</body>
+</html>

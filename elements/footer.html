@@ -1,0 +1,108 @@
+<!--
+  Compact footer for the personal website of Ir Prof. Siwei Liu.
+  Simple and professional design with essential information only (3 lines, no blank lines).
+-->
+<footer class="site-footer">
+  <div class="footer-container">
+    <div class="footer-line" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+      <div style="text-align: left; flex: 1;">
+        <p style="margin: 0;">
+          <strong>Useful Links:</strong>
+          <a href="https://www.nidacse.com/hk/" target="_blank" rel="noopener">NIDA Software</a>
+          <span>•</span>
+          <a href="https://www.ascjournal.com/" target="_blank" rel="noopener">International Journal of Advanced Steel Construction</a>
+          <span>•</span>
+          <a href="https://www.hkisc.org/" target="_blank" rel="noopener">HKISC</a>
+          <span>•</span>
+          <a href="https://www.mastan2.com/" target="_blank" rel="noopener">Mastan2</a>
+          <span>•</span>
+          <a href="https://www.msasect.com/" target="_blank" rel="noopener">MSASect</a>
+        </p>
+      </div>
+      <div style="text-align: right; white-space: nowrap; margin-left: 2rem;">
+        <p style="margin: 0;"><strong>© 2025 Siwei LIU</strong></p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style>
+/* Compact professional footer styling */
+.site-footer {
+  background-color: var(--footer-bg);
+  border-top: 1px solid var(--nav-border);
+  margin-top: 4rem;
+  padding: 1.5rem 0;
+  color: var(--text-color);
+  font-size: 0.9rem;
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  text-align: left;
+}
+
+.footer-line {
+  margin: 0.25rem 0;
+}
+
+.footer-line p {
+  margin: 0;
+  color: var(--text-color);
+  opacity: 0.85;
+}
+
+.footer-nav {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.footer-nav a {
+  color: var(--text-color);
+  text-decoration: none;
+  transition: var(--hover-transition);
+}
+
+.footer-nav a:hover {
+  color: var(--link-color);
+  text-decoration: underline;
+}
+
+.footer-nav span {
+  color: var(--text-color);
+  opacity: 0.5;
+}
+
+.footer-line a {
+  color: var(--link-color);
+  text-decoration: none;
+  transition: var(--hover-transition);
+}
+
+.footer-line a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .site-footer {
+    padding: 1.25rem 0;
+    font-size: 0.85rem;
+  }
+  
+  .footer-nav {
+    gap: 0.5rem;
+  }
+}
+
+/* Dark mode adjustments */
+body.dark-mode .site-footer {
+  background-color: var(--footer-bg);
+  border-top-color: var(--nav-border);
+}
+</style>
