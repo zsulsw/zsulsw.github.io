@@ -98,6 +98,23 @@
   .footer-nav {
     gap: 0.5rem;
   }
+  
+  /* Hide useful links and center copyright on mobile */
+  .footer-line {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 0.5rem;
+  }
+  
+  .footer-line > div:first-child {
+    display: none !important;
+  }
+  
+  .footer-line > div:last-child {
+    text-align: center !important;
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
 }
 
 /* Dark mode adjustments */

@@ -1,8 +1,8 @@
-## Postdoctoral Fellows
+## Postdoctoral Fellow
 
 1. **Dr CHEN Liang**, Postdoctoral Fellow (2022 – Present): "Second-order Direct Analysis of Steel Structures"
 
-## PhD Students
+## PhD Student
 
 1. **OUYANG Weihang** (2021 – Present): "Second-order Analysis of Pile-supported Framed Structures by Machine-learning-enhanced Finite-element Method", Doctor of Philosophy (Full-time) at the Hong Kong Polytechnic University
 

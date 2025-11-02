@@ -345,6 +345,22 @@ body.dark-mode .site-nav {
   border: none;
   color: var(--nav-text);
   cursor: pointer;
+  padding: 0.5rem;
+  align-items: center;
+  justify-content: center;
+  transition: var(--hover-transition);
+}
+
+.nav-toggle:hover {
+  background-color: var(--highlight-bg);
+  color: var(--link-color);
+}
+
+.nav-toggle-icon {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+  transition: var(--hover-transition);
 }
 .nav-menu {
   list-style: none;
@@ -704,12 +720,36 @@ body.dark-mode .sidebar:hover {
 #contact-page .content {
   display: flex;
   align-items: stretch;
-  margin-right: 0;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 #contact-page .contact-form {
-  flex: 1;
+  flex: 1 1 auto;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin-top: 1rem !important;
+  margin-bottom: 1rem !important;
+}
+
+/* Mobile responsive for contact form */
+@media (max-width: 768px) {
+  #contact-page .sidebar {
+    display: none !important;
+  }
+  
+  #contact-page .contact-form {
+    width: 100% !important;
+    margin: 1rem !important;
+    padding: 1.5rem !important;
+    border-radius: 12px !important;
+    max-width: calc(100% - 2rem) !important;
+    box-sizing: border-box !important;
+  }
 }
 
 /* White box styling for welcome, job, recent publications, and about sections */
@@ -805,13 +845,15 @@ body.dark-mode #recentPublicationsContainer {
     gap: 0;
   }
   .sidebar {
-    width: 100%;
+    width: calc(100% - 2rem);
+    max-width: calc(100vw - 2rem);
     border-right: none;
     border-bottom: 1px solid var(--nav-border);
     position: static;
     max-height: none;
     top: auto;
     margin: 1rem;
+    box-sizing: border-box;
   }
   .content {
     padding: 0 1rem;
@@ -1090,11 +1132,35 @@ body.dark-mode #teamContent:hover {
   .nav-container {
     padding: 0.5rem 1rem;
     height: 70px;
+    position: relative;
+  }
+  
+  .nav-brand {
+    order: 1;
+    margin-right: auto;
+  }
+  
+  .nav-right {
+    order: 2;
+    flex-grow: 0;
+    margin-right: 0.5rem;
   }
   
   .nav-toggle {
-    display: block;
-    order: -1; /* Put hamburger menu first */
+    display: flex;
+    order: 4; /* Put hamburger menu on the right */
+    margin-left: 0;
+  }
+  
+  /* When search is active, hide brand and expand search */
+  .nav-container:has(.nav-search.active) .nav-brand {
+    display: none;
+  }
+  
+  .nav-container:has(.nav-search.active) .nav-right {
+    order: 1;
+    flex-grow: 1;
+    margin-right: 0.5rem;
   }
   
   .nav-menu {
@@ -1157,27 +1223,19 @@ body.dark-mode #teamContent:hover {
     border-bottom-color: var(--active-text);
   }
 
-  /* Adjust the right side of the navigation on small screens */
-  .nav-right {
-    flex-grow: 1;
-    justify-content: flex-end;
-  }
-  
   /* On mobile, make search bar more compact initially but still expandable */
   .nav-search {
     /* Let the search bar take available space when navigation collapses */
     flex-grow: 1;
     width: 100%;
     max-width: none;
+    min-width: 0;
   }
-  /* When search bar is active on mobile, allow it to occupy full width */
+  /* When search bar is active on mobile, expand to full width */
   .nav-search.active {
     max-width: none;
     width: 100%;
   }
-  
-  /* Remove duplicate narrow width for search bar on mobile; the active state already expands to full width */
-  /* .nav-search.active{max-width:320px;border-color:var(--highlight-border);box-shadow:0 0 0 3px rgba(33,150,243,.15),0 4px 12px rgba(0,0,0,.2);background-color:#fff} */
 }
 
 /* Footer styles */
@@ -2576,12 +2634,91 @@ body.dark-mode .full-list-item:hover {
     align-items: stretch;
   }
   
+  /* Mobile layout for controls-row-top */
+  .controls-row-top {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.25rem;
+    overflow: hidden;
+  }
+  
   .search-box-container {
-    flex: 1 1 100%;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: calc(100% - 180px);
+  }
+  
+  .sort-dropdown-container {
+    margin-left: auto;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  
+  .sort-label {
+    margin-right: 0;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+  
+  .sort-select {
+    min-width: 100px;
+    max-width: 120px;
+    flex-shrink: 0;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+  }
+  
+  /* Mobile layout for controls-row-bottom */
+  .controls-row-bottom {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.25rem;
+    justify-content: flex-start;
+    overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .filter-label {
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-right: 0.25rem;
+    font-size: 0.85rem;
   }
   
   .filter-select {
-    width: 100%;
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 140px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .results-count-inline {
+    margin-left: auto;
+    flex-shrink: 0;
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+  
+  .view-toggle {
+    flex-shrink: 0;
+    margin-left: 0.25rem;
+  }
+  
+  .view-btn {
+    padding: 0.4rem;
+  }
+  
+  .view-btn svg {
+    width: 18px;
+    height: 18px;
   }
   
   .paper-header {

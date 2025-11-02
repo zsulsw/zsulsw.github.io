@@ -22,7 +22,14 @@ const fallbackHeader = `
         <img src="assets/images/logo-icon.png" alt="Stability Fun Logo" class="nav-logo">
         <span>Stability Fun</span>
       </a>
-      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">☰</button>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+        <svg class="nav-toggle-icon hamburger-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+        </svg>
+        <svg class="nav-toggle-icon close-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="display: none;">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
+      </button>
       <ul class="nav-menu" id="navMenu">
         <li><a href="index.html">Home</a></li>
         <li><a href="about.html">Biography</a></li>
@@ -640,15 +647,46 @@ function initNav() {
   // Generate navigation from config
   generateNavigation();
   
+  // Get hamburger and close icons
+  const hamburgerIcon = navToggle.querySelector('.hamburger-icon');
+  const closeIcon = navToggle.querySelector('.close-icon');
+  
+  // Function to update icon based on menu state
+  function updateToggleIcon() {
+    const isOpen = navMenu.classList.contains('open');
+    if (hamburgerIcon && closeIcon) {
+      if (isOpen) {
+        hamburgerIcon.style.display = 'none';
+        closeIcon.style.display = 'block';
+      } else {
+        hamburgerIcon.style.display = 'block';
+        closeIcon.style.display = 'none';
+      }
+    }
+  }
+  
   navToggle.addEventListener('click', () => {
     navMenu.classList.toggle('open');
+    updateToggleIcon();
   });
   
   // Close menu when clicking a link (useful on mobile)
   navMenu.querySelectorAll('a').forEach(link => {
     link.addEventListener('click', () => {
       navMenu.classList.remove('open');
+      updateToggleIcon();
     });
+  });
+  
+  // Close menu when clicking outside (mobile)
+  document.addEventListener('click', (e) => {
+    if (window.innerWidth <= 768 && 
+        navMenu.classList.contains('open') && 
+        !navMenu.contains(e.target) && 
+        !navToggle.contains(e.target)) {
+      navMenu.classList.remove('open');
+      updateToggleIcon();
+    }
   });
   
   // Highlight active page
@@ -790,6 +828,27 @@ function initSearchBar() {
     if (!container.classList.contains('active')) {
       container.classList.add('active');
       input.focus();
+      // Hide logo on mobile when search is active
+      if (window.innerWidth <= 768) {
+        const navBrand = document.querySelector('.nav-brand');
+        if (navBrand) {
+          navBrand.style.display = 'none';
+        }
+      }
+    }
+  }
+  
+  // Collapse search and show logo again
+  function collapseSearch() {
+    if (container.classList.contains('active')) {
+      container.classList.remove('active');
+      // Show logo again on mobile when search is collapsed
+      if (window.innerWidth <= 768) {
+        const navBrand = document.querySelector('.nav-brand');
+        if (navBrand) {
+          navBrand.style.display = '';
+        }
+      }
     }
   }
 
@@ -821,6 +880,7 @@ function initSearchBar() {
     updateClearButton();
     hideSuggestions();
     input.focus();
+    // Don't collapse, just clear the input
   });
 
   // Button click performs search if expanded and has query, otherwise expands
@@ -846,7 +906,26 @@ function initSearchBar() {
   // Clicking anywhere outside collapses the search if empty
   document.addEventListener('click', (e) => {
     if (!container.contains(e.target) && container.classList.contains('active') && input.value.trim() === '') {
-      container.classList.remove('active');
+      collapseSearch();
+    }
+  });
+  
+  // Handle window resize to show/hide logo appropriately
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) {
+      // On desktop, always show logo
+      const navBrand = document.querySelector('.nav-brand');
+      if (navBrand) {
+        navBrand.style.display = '';
+      }
+    } else {
+      // On mobile, hide logo if search is active
+      if (container.classList.contains('active')) {
+        const navBrand = document.querySelector('.nav-brand');
+        if (navBrand) {
+          navBrand.style.display = 'none';
+        }
+      }
     }
   });
 
